@@ -507,38 +507,3 @@ This section documents every UI component present on the Guest Details tab, incl
 | NFR-GD-022 | The system SHALL support guest data collection in compliance with local hotel industry regulations and immigration reporting requirements (e.g., C-Form equivalent for foreign nationals). | Regulatory compliance |
 | NFR-GD-023 | Guest profile data changes (especially post-check-in edits to passport/visa info) SHALL be logged in an audit trail with user ID, timestamp, and old/new values. | Audit trail requirement |
 
----
-
-## 8. AI-DLC Audit Update — 2026-04-22
-
-Findings from live audit (Cubix HMS V-9.3.0, Kazi Resort).
-
-### 8.1 Verified field-ID map
-All field IDs in §3.4 and §5.2–5.4 match the live DOM. Person Adult / Person Child are read-only mirrors of Tab 1 values. Full Guest Name is read-only with JS auto-concat. Country defaults to Bangladesh (id=19, 250 options). Guest Search and Guest Info modals are present in the DOM with all 11 search filter fields.
-
-### 8.2 Known defects
-
-| ID | Defect | Impact |
-|---|---|---|
-| DEF-GD-01 | Title master has duplicate "MR. & MRS." and "MR. MRS." | data quality |
-| DEF-GD-02 | Profession master only 3 entries | enrich master |
-| DEF-GD-03 | Company master contains only placeholder | load master |
-| DEF-GD-04 | First Name and Room No. inputs lack HTML `required` attribute | JS-only validation |
-
-### 8.3 Business rules added
-
-| ID | Rule |
-|---|---|
-| BR-GD-023 | Primary guest cannot be deleted while it is the only guest; system shows "At least one guest is required". |
-| BR-GD-024 | Nationality auto-fills from Country; manual override is preserved across subsequent Country changes unless user confirms reset. |
-| BR-GD-025 | Email is validated against RFC 5321 on blur; invalid values block Add/Update. |
-| BR-GD-026 | Guest rows ≤ Person (Adult) + Person (Child); Add is rejected when exceeded. |
-| BR-GD-027 | Duplicate passport / national ID on another active registration triggers a soft warning requiring confirmation. |
-
-### 8.4 User journeys added
-- UJ-GD-A Guest Search zero-results → empty-state message → manual entry.
-- UJ-GD-B Document upload rejected (malware / format / size) → inline error; form state retained.
-- UJ-GD-C Duplicate passport detection → soft warning linking to existing registration.
-- UJ-GD-D Returning-guest with updated details → this registration saves the snapshot; profile write-back queued.
-- UJ-GD-E Network drop during upload → auto-retry; on final failure document marked "pending" and reconciliation job uploads later.
-
