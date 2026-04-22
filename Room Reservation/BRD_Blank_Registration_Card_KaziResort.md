@@ -219,9 +219,9 @@ All actionable processes within the Blank Registration Card module are documente
 | Clause 9 | Please handover keys to reception before leaving the hotel at any given time. Loss room keys will incur a BDT 600.00 charge. |
 | Clause 10 | Pets are not allowed inside the hotel premises. |
 | Clause 11 | Guests are not permited to carry weapons inside the hotel premises (Firearms, ammunition, knives and any kind of narcotic drugs). |
-| Clause 12 | Our standard Check-in time 14:00:00 HRS and Check-out time 12:00:00 HRS. |
+| Clause 12 | Our standard Check-in time **14:00:00 HRS** and Check-out time **12:00:00 HRS**. |
 | Clause 13 | The hotel guest cannot hand over a room key to third person even if the period for which the guest paid has not yet expired. |
-| Clause 14 (Bold) | Please be advised that all our rooms are non-smoking. If evidence of smoking is found in a room, a penalty will be applied to cover the cost of odor removal. The charge for odor cleaning is 2,500 BDT for a Junior Suite and 2,000 BDT for a Premier Room. |
+| Clause 14 (Bold) | Please be advised that all our rooms are non-smoking. If evidence of smoking is found in a room, a penalty will be applied to cover the cost of odor removal. The charge for odor cleaning is 2,500 BDT for a Junior Suite and 2,000 BDT for a Premier Room. We appreciate your understanding and cooperation in maintaining a smoke-free environment. |
 | Penalties Stated | Lost key: BDT 600.00 \| Smoking - Junior Suite: BDT 2,500 \| Smoking - Premier Room: BDT 2,000 |
 | Post-condition | All 14 policy clauses printed on every card for guest review before signing |
 
@@ -307,7 +307,7 @@ Every visible and structural component of the Blank Registration Card page is do
 | Logo | img (centered) | Kazi Resort and Hotel logo image (alt=Logo) |
 | Hotel Name | h3 | Kazi Resort Ltd — bold, centered |
 | Address Line | p | Surjonarayanpur, Kapasia, Gazipur, Bangladesh |
-| Contact Line | p | Hotline: +8801894803511, phone: +8801894814765, +8801894814761, Web: www.kaziresort.com |
+| Contact Line | p | Hotline: +8801894803511, phone: +8801894814765, +8801894814761, Web: www.kaziresort.com **(current live template renders the "Hotline:" prefix twice — "Hotline: Hotline: +880…" — to be corrected in the template)** |
 | Email Line | p | Email: reservation@kaziresort.com |
 | Container | Table T0, 1 row, 1 cell | text-align:center, line-height:0px, full page width |
 | Divider | Horizontal rule | Separates header from card body |
@@ -432,3 +432,53 @@ The following business rules govern the Blank Registration Card, its rendering, 
 | NFR-BRC-M02 | Configurable Hotel Contact Info | Hotel name, address, phone numbers, website, and email in the card header should be sourced from the HMS hotel settings configuration, not hard-coded. |
 | NFR-BRC-M03 | Template Versioning | Changes to the registration card template (policy text, field layout, branding) must be version-controlled to maintain audit history. |
 | NFR-BRC-M04 | Print CSS Maintenance | Bootstrap print utility classes used on this page must be maintained and tested after any Bootstrap version upgrade. |
+
+---
+
+## 8. AI-DLC Audit Update — 2026-04-22
+
+Findings from live audit (Cubix HMS V-9.3.0, Kazi Resort).
+
+### 8.1 Verified content (live)
+
+| Element | Result |
+|---|---|
+| Title = "Pre Registration Card" | ✓ |
+| Zero interactive elements (0 inputs / forms / buttons / links / scripts) | ✓ |
+| H1 count = 2 ("Pre Registration Card", "Room No") | ✓ |
+| H2 count = 2 ("Dear Guest…", GDPR consent) | ✓ |
+| H3 "Kazi Resort Ltd" | ✓ |
+| Logo src = `/assets/img/icons/2026-04-15/1.jpeg`, alt=`Logo` | ✓ (date-parameterised path) |
+| 14 `<li>` policy clauses | ✓ |
+| Clause 9 "BDT 600.00" | ✓ |
+| Clause 12 "14:00:00 HRS / 12:00:00 HRS" | ✓ |
+| Clause 14 "2,500 BDT / 2,000 BDT" | ✓ |
+| "Title*:" × 4, "First name*:" × 4, "Surname*:" × 4 | ✓ 4 guest rows |
+| Consent + Checked in By* + Guest Signature* | ✓ |
+| Checkout reminder bolded time | ✓ |
+
+### 8.2 Known defects
+
+| ID | Defect | Impact |
+|---|---|---|
+| DEF-BRC-01 | "Hotline:" prefix duplicated in rendered contact line ("Hotline: Hotline: +880…") | ⚠ template text bug |
+| DEF-BRC-02 | Original Clause 14 text in BRD missed the trailing sentence "We appreciate your understanding and cooperation in maintaining a smoke-free environment." | ✓ now aligned |
+| DEF-BRC-03 | Logo path is date-parameterised (`/assets/img/icons/2026-04-15/1.jpeg`); no BR described the resolution rule | ✓ new BR-BRC-018 |
+| DEF-BRC-04 | Page renders outside the HMS shell (no navbar/sidebar/footer) — behaviour implicit only | ✓ new BR-BRC-019 |
+| DEF-BRC-05 | Policy clause typos "recivable" (clause 5), "permited" (clause 11) are present intentionally in live | ✓ new BR-BRC-020 |
+
+### 8.3 Business rules added
+
+| ID | Rule |
+|---|---|
+| BR-BRC-018 | **Logo-path resolution** — The logo image URL SHALL resolve to `/assets/img/icons/{logo_effective_date}/1.jpeg`, where `logo_effective_date` is the last date on which the hotel logo was updated in HMS settings. If the resource 404s, the `alt="Logo"` text is rendered unchanged and the page otherwise prints normally. |
+| BR-BRC-019 | **Out-of-shell rendering** — The Blank Registration Card page SHALL render without the HMS sidebar, global navbar, or footer. It is a standalone, print-optimised document. Authentication is still enforced. |
+| BR-BRC-020 | **Verbatim policy text** — Policy clause wording (including historically present typographical errors such as "recivable", "permited") SHALL be treated as legally-reviewed fixed text; edits require legal sign-off. Any change must be version-controlled and dated. |
+| BR-BRC-021 | **Contact-line de-duplication** — The header contact line MUST contain the "Hotline:" prefix exactly once. Duplicate prefixes are defects to be corrected at the template level. |
+
+### 8.4 User journeys added
+- UJ-BRC-A Logo 404 fallback — image resource missing → browser renders alt text "Logo"; rest of the card prints normally.
+- UJ-BRC-B Save-as-PDF alternative — staff chooses browser "Save as PDF" instead of physical printer → file saved locally; archival folder convention `/card-archive/{registration_no}.pdf` is recommended but not enforced by system.
+- UJ-BRC-C Physical retention / destruction — completed signed card retained per hotel records policy (default: 3 years); destruction log required for GDPR compliance when retention expires.
+- UJ-BRC-D Hotel contact-info update — admin updates hotline/email in HMS settings → new template deployment replaces hard-coded values; until then, card keeps the old values.
+

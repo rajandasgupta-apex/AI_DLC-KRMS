@@ -21,7 +21,7 @@ This tab is central to operational compliance, guest experience, and audit readi
 
 | Attribute | Details |
 |---|---|
-| System | Cubix HMS v13.1.0 |
+| System | Cubix HMS V-9.3.0 (deployed) — BRD drafted against v13.1.0 |
 | Module | Front Office |
 | Sub-Module | Room Registration |
 | Tab Name | Guest Details |
@@ -85,7 +85,7 @@ This section details all functional requirements for the Guest Details tab, cove
 | FR-GD-006 | The system SHALL display two numeric input fields at the top of the Guest Details tab: "Person (Adult)" (mandatory, field ID: fo_reg_person_adult) and "Person (Child)" (optional, field ID: fo_reg_person_child). | Must Have |
 | FR-GD-007 | The "Person (Adult)" field SHALL default to the value 1 (minimum one adult per registration). | Must Have |
 | FR-GD-008 | The "Person (Child)" field SHALL default to 0. | Must Have |
-| FR-GD-009 | Both fields SHALL accept only positive integer values. Negative values or non-numeric input SHALL be rejected. | Must Have |
+| FR-GD-009 | Both Person (Adult) / Person (Child) fields are **read-only** on this tab; values are mirrored from the Registration tab's Adult (Per Room) / Child (Per Room) counts. To change them, the user returns to Tab 1. | Must Have |
 | FR-GD-010 | The guest count entered here SHALL be used to determine how many individual guest information forms need to be completed (one per person or a group form depending on guest type). | Should Have |
 
 ### 3.3 Guest Type Selection (Individual vs. Family/Group/Couple)
@@ -105,7 +105,7 @@ The Individual Guest Information section is the primary data entry area. It is d
 
 | Field Name | Field ID | Type | Required | Description & Rules |
 |---|---|---|---|---|
-| Title | fo_reg_guest_title | Dropdown (Select) | Yes (*) | Salutation/honorific for the guest. Options include: Mr., Mrs., Ms., Dr., etc. Must be selected from predefined list. |
+| Title | fo_reg_guest_title | Dropdown (Select) | Yes (*) | Salutation/honorific. Live master: MR., MRS., MS., MR. & MRS., DR., NOT APPLICABLE, MR. MRS. Note: "MR. & MRS." and "MR. MRS." are duplicate entries — master requires consolidation. |
 | First Name | fo_reg_guest_first_name | Text Input | Yes (*) | Guest's first/given name. Free text. Placeholder: "First Name". |
 | Last Name | fo_reg_guest_last_name | Text Input | No | Guest's surname/family name. Free text. Placeholder: "Last Name". |
 | Gender | fo_reg_guest_gender | Dropdown (Select) | No | Guest's gender. Options: Male, Female, Other (or as configured). |
@@ -120,7 +120,7 @@ The Individual Guest Information section is the primary data entry area. It is d
 |---|---|---|---|---|
 | Email Address | fo_reg_guest_email | Email Input | No | Guest's email address. Validated as proper email format (e.g., user@domain.com). |
 | Phone Number | fo_reg_guest_phn | Text Input | No | Guest's contact number. Placeholder: "+880 XXX-XXXXXXX". Accepts international format. |
-| Profession | fo_reg_guest_profession | Dropdown (Select) | No | Guest's occupation/profession. Populated from configurable master profession list. |
+| Profession | fo_reg_guest_profession | Dropdown (Select) | No | Guest's occupation/profession. Populated from configurable master profession list. **Live master has only 3 entries (DR, EN, Other); enrich before go-live.** |
 | Company Name | fo_reg_guest_company_name | Dropdown (Select) | No | Associated company or corporate account. Searchable dropdown populated from corporate accounts master. |
 | Address | guest_address | Text Input | No | Street address of the guest. Placeholder: "Street Address". |
 | City | fo_reg_guest_city | Text Input | No | Guest's city of residence. |
@@ -506,3 +506,39 @@ This section documents every UI component present on the Guest Details tab, incl
 | NFR-GD-021 | Date fields SHALL reject logically impossible dates (e.g., 30-Feb, future date-of-birth). | Calendar-aware date validation |
 | NFR-GD-022 | The system SHALL support guest data collection in compliance with local hotel industry regulations and immigration reporting requirements (e.g., C-Form equivalent for foreign nationals). | Regulatory compliance |
 | NFR-GD-023 | Guest profile data changes (especially post-check-in edits to passport/visa info) SHALL be logged in an audit trail with user ID, timestamp, and old/new values. | Audit trail requirement |
+
+---
+
+## 8. AI-DLC Audit Update — 2026-04-22
+
+Findings from live audit (Cubix HMS V-9.3.0, Kazi Resort).
+
+### 8.1 Verified field-ID map
+All field IDs in §3.4 and §5.2–5.4 match the live DOM. Person Adult / Person Child are read-only mirrors of Tab 1 values. Full Guest Name is read-only with JS auto-concat. Country defaults to Bangladesh (id=19, 250 options). Guest Search and Guest Info modals are present in the DOM with all 11 search filter fields.
+
+### 8.2 Known defects
+
+| ID | Defect | Impact |
+|---|---|---|
+| DEF-GD-01 | Title master has duplicate "MR. & MRS." and "MR. MRS." | data quality |
+| DEF-GD-02 | Profession master only 3 entries | enrich master |
+| DEF-GD-03 | Company master contains only placeholder | load master |
+| DEF-GD-04 | First Name and Room No. inputs lack HTML `required` attribute | JS-only validation |
+
+### 8.3 Business rules added
+
+| ID | Rule |
+|---|---|
+| BR-GD-023 | Primary guest cannot be deleted while it is the only guest; system shows "At least one guest is required". |
+| BR-GD-024 | Nationality auto-fills from Country; manual override is preserved across subsequent Country changes unless user confirms reset. |
+| BR-GD-025 | Email is validated against RFC 5321 on blur; invalid values block Add/Update. |
+| BR-GD-026 | Guest rows ≤ Person (Adult) + Person (Child); Add is rejected when exceeded. |
+| BR-GD-027 | Duplicate passport / national ID on another active registration triggers a soft warning requiring confirmation. |
+
+### 8.4 User journeys added
+- UJ-GD-A Guest Search zero-results → empty-state message → manual entry.
+- UJ-GD-B Document upload rejected (malware / format / size) → inline error; form state retained.
+- UJ-GD-C Duplicate passport detection → soft warning linking to existing registration.
+- UJ-GD-D Returning-guest with updated details → this registration saves the snapshot; profile write-back queued.
+- UJ-GD-E Network drop during upload → auto-retry; on final failure document marked "pending" and reconciliation job uploads later.
+

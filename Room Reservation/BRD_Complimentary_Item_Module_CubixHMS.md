@@ -22,7 +22,7 @@ The module is designed to enhance guest experience by ensuring that all complime
 
 | Attribute | Details |
 |---|---|
-| System | Cubix HMS v13.1.0 |
+| System | Cubix HMS V-9.3.0 (deployed) — BRD drafted against v13.1.0 |
 | Module | Front Office |
 | Sub-Module | Room Registration |
 | Tab Name | Complimentary Item |
@@ -86,15 +86,15 @@ This section details all functional requirements for the Complimentary Item tab,
 | FR-CI-008 | Each service tile SHALL contain a checkbox control and a text label describing the service. | Must Have |
 | FR-CI-009 | A selected (checked) tile SHALL be visually distinguished from an unselected tile using a filled/highlighted background colour (dark navy/teal) vs. an outlined/white background. | Must Have |
 | FR-CI-010 | The instruction text "Select the services included with your reservation" SHALL be displayed above the service tiles as a guiding prompt. | Must Have |
-| FR-CI-011 | The complete list of 29 complimentary service items SHALL be displayed as defined in the master services configuration. See Section 5 for full list. | Must Have |
+| FR-CI-011 | The complete list of **31 active complimentary service items** (master IDs 1, 3–34 with gaps for deactivated entries) SHALL be displayed as defined in the master services configuration. Six items are flagged as **property-default = checked on a new walk-in registration**: Buffet Breakfast/A la Carte (ID 4), 2 Bottle Mineral Water (ID 6), Wi-Fi Internet Access (ID 14), 24 Hour Room Services (ID 16), Airport Pickup-3-day-stay (ID 17), Tea setup in room (ID 31). See Section 5 for the full list. | Must Have |
 
 ### 3.3 Select All Functionality
 
 | Req. ID | Requirement Description | Priority |
 |---|---|---|
 | FR-CI-012 | A "Select All" master checkbox SHALL be provided in the top-right corner of the Complimentary Item section header. | Must Have |
-| FR-CI-013 | Clicking the "Select All" checkbox when all items are unchecked SHALL select all 29 service checkboxes simultaneously. | Must Have |
-| FR-CI-014 | Clicking the "Select All" checkbox when all or some items are selected SHALL deselect all 29 service checkboxes simultaneously (toggle/deselect-all behaviour). | Must Have |
+| FR-CI-013 | Clicking the "Select All" checkbox when all items are unchecked SHALL select all 31 active service checkboxes simultaneously. | Must Have |
+| FR-CI-014 | Clicking the "Select All" checkbox when all or some items are selected SHALL deselect all 31 service checkboxes simultaneously (toggle/deselect-all behaviour). | Must Have |
 | FR-CI-015 | If a user manually selects all individual checkboxes, the "Select All" master checkbox SHALL automatically become checked/activated to reflect the all-selected state. | Should Have |
 | FR-CI-016 | If a user deselects at least one individual checkbox after a "Select All" action, the "Select All" master checkbox SHALL automatically become unchecked. | Should Have |
 
@@ -286,3 +286,71 @@ Business rules govern the logic, constraints, and policies that the Complimentar
 | NFR-CI-019 | New complimentary services can be added to the master list and will automatically appear in the Complimentary Item tab checklist. | Dynamic rendering from database; no hardcoding. |
 | NFR-CI-020 | Services can be deactivated (hidden) from the checklist by toggling the is_active flag in the master configuration table. | Soft-delete approach preserves historical data. |
 | NFR-CI-021 | The tile grid layout SHALL gracefully accommodate up to 50 service items without requiring a page redesign. | Scalable grid CSS required. |
+
+---
+
+## 8. AI-DLC Audit Update — 2026-04-22
+
+Findings from live audit (Cubix HMS V-9.3.0, Kazi Resort).
+
+### 8.1 Authoritative master list (live)
+
+| ID | Service Name | Default Checked |
+|---|---|---|
+| 1 | Airport Pick-Up & Drop | — |
+| 3 | Welcome Fruit Basket in Room | — |
+| 4 | Buffet Breakfast/ A la Carte menu (Depend on Occupancy). | ✓ |
+| 5 | After Noon High Tea at 4:30pm-6:00pm | — |
+| 6 | 2 Bottle Mineral Water | ✓ |
+| 7 | 1 Large Bottle Mineral Water | — |
+| 8 | 2pcs Laundry Daily | — |
+| 9 | Daily Newspaper | — |
+| 10 | VVIP Fruit Basket in Room | — |
+| 11 | 4 Bottle Mineral Water | — |
+| 12 | Personal Butler | — |
+| 13 | Access to Swimming Pool & Health Club/Gym | — |
+| 14 | Wi-Fi Internet Access in Room, Restaurant & Lobby. | ✓ |
+| 15 | 10% Discount in The Grace Restaurant | — |
+| 16 | 24 Hour Room Services | ✓ |
+| 17 | Airport Pickup ( Applicable 3 days stay) | ✓ |
+| 18 | 25% Discount in Cinnamon A-La-Carte Menu | — |
+| 19 | 12% discount in Liquid Bar | — |
+| 20 | No- Mini Bar | — |
+| 21 | Buffet Lunch | — |
+| 22 | Buffet Dinner | — |
+| 23 | Complimentary Breakfast and Dinner | — |
+| 24 | Tit-Bits | — |
+| 25 | Buffet Breakfast | — |
+| 26 | Cookies Platter / Fruit Basket | — |
+| 27 | Complimentary Breakfast | — |
+| 28 (Airport Drop dup) | — | — |
+| 31 | Tea setup in room | ✓ |
+| 32 | Honeymoon Cake | — |
+| 33 | Flower Bucket | — |
+| 34 | Candle Light Dinner | — |
+
+(ID 2 and other gaps = deactivated master entries retained for historic references.)
+
+### 8.2 Known defects
+
+| ID | Defect | Impact |
+|---|---|---|
+| DEF-CI-01 | BRD §3.2 originally specified 29 items; live master has 31 active entries | Counts mismatch |
+| DEF-CI-02 | 6 items are pre-checked on every new registration regardless of reservation linkage — contradicts original FR-CI-021 | Doc updated; see §8.3 BR-CI-017 |
+| DEF-CI-03 | Select All master checkbox id is `select-all` (BRD did not specify id) | Confirmed in DOM |
+
+### 8.3 Business rules added
+
+| ID | Rule |
+|---|---|
+| BR-CI-017 | **Property-default baseline** — The 6 items in §8.1 flagged "Default Checked" are auto-selected on every new registration as the property baseline. The user may deselect any of them before Check-in. Reservation or rate-code pre-population overrides the baseline. |
+| BR-CI-018 | **Sparse master IDs** — Deactivated items (IDs with `is_active=0`) are hidden from the tile grid but remain referenceable on historical registration records. |
+| BR-CI-019 | **Select-All scope** — The Select All master checkbox operates only on the 31 visible active items; it never re-activates a deactivated master entry. |
+
+### 8.4 User journeys added
+- UJ-CI-A Property-default override → user deselects some of the 6 auto-checked items → Check-in saves exactly the user's final selection.
+- UJ-CI-B Rate-code package auto-selects additional items → user manually overrides selection → Check-in honours user override.
+- UJ-CI-C Admin deactivates an item mid-stay → historical record retains item name/id; new registrations no longer show the tile.
+- UJ-CI-D Concierge notification trigger — on Check-in, items requiring external coordination (Airport Pickup, Personal Butler, Candle Light Dinner) fire service-request tickets to concierge queue.
+- UJ-CI-E Folio-posting preview — complimentary items appear on the folio at zero value (or internal cost account) per BR-CI-007; verified via Bill Preview in Search tab.
+

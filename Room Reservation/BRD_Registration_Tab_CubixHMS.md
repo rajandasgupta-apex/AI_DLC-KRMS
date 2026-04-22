@@ -8,7 +8,7 @@ Front Office Module | Room Registration | Registration Tab (Tab 1)
 | Field | Value |
 |---|---|
 | Document Title | BRD – Registration Tab (Room Registration Module) |
-| System | Cubix HMS v13.1.0 |
+| System | Cubix HMS V-9.3.0 (deployed) — BRD originally drafted against v13.1.0 |
 | Module Path | Front Office > Room Registration > Registration (Tab 1) |
 | Version | 1.0 |
 | Prepared Date | April 13, 2026 |
@@ -302,7 +302,7 @@ The Additional Service section allows staff to attach one or more supplementary 
 
 | Req ID | Requirement Description | Priority |
 |---|---|---|
-| FR-AS-01 | Service Name (ID: extra_bed, name: none — select element): A dropdown populated with all active additional service types from the HMS service master. Options include: Additional Room Revenue, Airport Drop, Airport Pickup, Business Center, Cafe, Damage Charge, Extra Bed Charge, Extra Breakfast, Early Check-in Fee, Gym, Half Day Charge, Laundry, Minibar, Missing Charge, Miscellaneous, No Show Charge, Restaurant, Spa, Transport, Full Day Charge, Swimming Pool, Recreation, Driver Accommodation, Massage Chair. | Must Have |
+| FR-AS-01 | Service Name (ID: extra_bed, name: extra_bed — select element): A dropdown populated with all active additional service types from the HMS service master. **Current live master (19 items)**: Room Rent, Airport Drop, Airport Pickup, Early Check in Fee, Extra Bed Fee, Late Checkout Fee, Laundry, Minibar, Miscellaneous, Resturant [sic — typo for "Restaurant", to be fixed], Transport, Missing Charge, Extra Breakfast, Damage Charge, Conference Hall, Sound System, Multimedia, Reservation Cancellation Charge, No-Show Charge. **Items targeted but NOT yet in master**: Additional Room Revenue, Business Center, Cafe, Gym, Half Day Charge, Full Day Charge, Swimming Pool, Recreation, Driver Accommodation, Massage Chair, Spa. | Must Have |
 | FR-AS-02 | The Service Name dropdown shall default to "Please select" (empty selection). | Must Have |
 | FR-AS-03 | Selecting a service shall auto-populate the applicable rate and enable the date fields. | Should Have |
 
@@ -337,7 +337,7 @@ After adding room(s) and services, they appear in the Room Registration Summary 
 
 | Req ID | Requirement Description | Priority |
 |---|---|---|
-| FR-TBL-01 | The summary table shall display all added rooms with columns: Room Type, Room Number, Adult, Child, Check-In Date, Checkout Date, No. Of Night, Room Rate, Additional Service, Status, Action. | Must Have |
+| FR-TBL-01 | The summary table shall display all added rooms with columns: Room Type, Room Number, Adult, Child, Check-In Date, Checkout Date, No. Of Night, Room Rate, Additional Service, Status, Action. **Current UI defect**: column is mislabelled "Extra Bed" instead of "Additional Service" — to be renamed. | Must Have |
 | FR-TBL-02 | The Action column shall contain Edit (info button) and Delete (warning button) action buttons for each row. | Must Have |
 | FR-TBL-03 | Clicking Edit for a room row shall re-populate the Room Detailed Information fields with that room's data, allowing the user to modify it (and use the Update button to save changes). | Must Have |
 | FR-TBL-04 | Clicking Delete for a room row shall remove that room from the registration (with a confirmation prompt). | Must Have |
@@ -358,20 +358,20 @@ Below the Room Detailed Information and Additional Service sections, the Registr
 
 | Req ID | Requirement Description | Priority |
 |---|---|---|
-| FR-GS-01 | Guest Source (name: guest_source): Dropdown for categorizing how the guest found the hotel. Options: Web Site, Marketing, Other Source, Broker. Default: Please Select. | Must Have |
+| FR-GS-01 | Guest Source (id: fo_reg_guest_source, name: fo_reg_guest_source): Dropdown for categorizing how the guest found the hotel. Options: Web Site, Marketing, Other Source, Broker. Default: -- Please Select --. | Must Have |
 
 #### 3.6.3 Meal Plan
 
 | Req ID | Requirement Description | Priority |
 |---|---|---|
-| FR-MP-01 | Meal Plan (name: meal_plan): Required dropdown. Options: BED ONLY, BED & BREAKFAST, HALF BOARD, FULL BOARD, BED/FOOD/LAUNDRY EXCEPT HARD DRINKS, Honeymoon Package, Day Long Package, Iftar. Default: Please Select. Required field (marked with *). | Must Have |
+| FR-MP-01 | Meal Plan (id: fo_reg_meal_plan, name: fo_reg_meal_plan): Required dropdown. **Current live master (5 items)**: BED ONLY, BED & BREAKFAST, HALF BOARD, FULL BOARD, "BED,FOOD,LAUNDRY EXCEPT HARD DRINKS". **Targeted additions still to be configured**: Honeymoon Package, Day Long Package, Iftar. Default: -- Please Select --. Required field (marked with *). | Must Have |
 | FR-MP-02 | The selected Meal Plan shall affect the F&B service provisioning for the guest stay and may influence room rate calculations. | Must Have |
 
 #### 3.6.4 Reference
 
 | Req ID | Requirement Description | Priority |
 |---|---|---|
-| FR-REF-01 | Reference (name: reference): Required dropdown. Lists the booking reference channels (Front Office, Mr. Reaz, Mr. Nurul, Online Sales, Booking.com, Expedia.com, Gozayaan, Share Trip, FIT, Sales Team, etc.). Required field (marked with *). | Must Have |
+| FR-REF-01 | Reference (id: fo_reg_reference, name: fo_reg_reference): Required dropdown. Lists the booking reference channels (Front Office, Mr. Reaz, Mr. Nurul, Online Sales, Booking.com, Expedia.com, Gozayaan, Share Trip, FIT, Sales Team, etc.). Current live master contains 7 entries + placeholder; additional channels to be configured via HMS back-office. Required field (marked with *). | Must Have |
 | FR-REF-02 | The Reference field tracks how the booking was sourced and is used in commission and channel management reports. | Must Have |
 
 #### 3.6.5 Hotel Remarks & POS Remarks
@@ -635,3 +635,60 @@ Business rules govern all logic, constraints, and conditional behaviors enforced
 | NFR-AUD-02 | Any changes to billing fields (Rack Rate, Discount, Negotiated Rate) on an existing registration must be logged with before/after values. | Change audit log |
 | NFR-AUD-03 | Audit logs must be retained for a minimum of 3 years. | 3-year retention |
 | NFR-AUD-04 | The system must support generating a report of all registrations within a date range, filterable by room type, company, market segment, meal plan, and reference channel. | Reporting capability |
+
+---
+
+## 8. AI-DLC Audit Update — 2026-04-22
+
+This section records the findings of the live-application audit (Kazi Resort deployment, Cubix HMS V-9.3.0) against this BRD and captures the deltas that AI-DLC agents must treat as authoritative until the code or BRD is reconciled.
+
+### 8.1 Verified field-ID map (live DOM)
+
+| BRD reference | Live id / name | State |
+|---|---|---|
+| `meal_plan` (BRD name) | id/name = `fo_reg_meal_plan` | Name corrected in BRD |
+| `guest_source` (BRD name) | id/name = `fo_reg_guest_source` | Name corrected in BRD |
+| `reference` (BRD name) | id/name = `fo_reg_reference` | Name corrected in BRD |
+| Extra Service select id | `extra_bed`, name `extra_bed` | Confirmed |
+| CSRF token | `csrf_test_name` (hidden) | Confirmed |
+
+### 8.2 Known defects to remediate
+
+| ID | Defect | Impact |
+|---|---|---|
+| DEF-REG-01 | City Charge (`fo_reg_cityCharge`) and City Charge checkbox present in DOM but wrapped in `col-sm-2 hide` — not reachable in UI (FR-SC-05/06) | ❌ Blocks City-Charge billing rule BR-012 |
+| DEF-REG-02 | Additional Charges (`fo_reg_additionalCharge`) and checkbox same wrapper class `hide` (FR-SC-07/08) | ❌ Blocks BR-013 |
+| DEF-REG-03 | Hidden field `fo_from_reservation` (FR-RES-06) not present in DOM | ❌ Prevents reliable walk-in/reservation-linked classification |
+| DEF-REG-04 | Summary-table column rendered as "Extra Bed" instead of "Additional Service" (FR-TBL-01) | ⚠ UI label only |
+| DEF-REG-05 | Additional Service option "Resturant" — spelling bug | ⚠ |
+| DEF-REG-06 | `roomNumber` input has no HTML `required` attribute (FR-RN-02) — relies on JS validation | ⚠ client-side only |
+| DEF-REG-07 | Currency master loaded with BDT only — FR-CUR-02 expects "all active currencies" | ⚠ configuration |
+| DEF-REG-08 | Listed Company master empty (FR-LC-03 expects populated corporate master) | ⚠ configuration |
+
+### 8.3 Master-data gaps
+
+| Master | BRD expectation | Live state | Action |
+|---|---|---|---|
+| Meal Plan | 8 values | 5 values | Add Honeymoon Package, Day Long Package, Iftar |
+| Additional Service | 24 values | 19 values | Add 11 listed in §3.4; remove or review 6 property-specific extras; fix "Resturant" |
+| Market Segment | BRD sample "Dhaka Office, Cox's Office" | Dhaka Office, Sea Moon Cox's Bazar, BD Tour | Property-specific — BRD treats Cox's Office/Sea Moon Cox's Bazar as equivalent |
+| Reference | 10+ channels | 7 + placeholder | Extend master |
+| Currency | Populated master | BDT only | Load currency master |
+| Listed Company | Populated master | placeholder only | Load corporate master |
+
+### 8.4 Business rules added
+
+| Rule ID | Rule | Reason |
+|---|---|---|
+| BR-035 | **Rate-master fallback** — When Room Type is selected and no active rate plan exists for the stay window, the system SHALL NOT block the user but SHALL leave Rack Rate empty and surface an inline message "No rate plan configured for this room type and date range". | Supports codegen validation of the fetch-rate path. |
+| BR-036 | **Summary-table column taxonomy** — The summary-table "Additional Service" column is authoritative; any UI rendering of "Extra Bed" must be treated as a regression. | Resolves DEF-REG-04 ambiguity. |
+| BR-037 | **Hidden master items** — Any item deactivated in the Additional Service / Meal Plan / Reference masters after registrations have been created SHALL remain retrievable for historical registrations (soft-delete pattern). | Historical integrity. |
+
+### 8.5 User journeys added
+
+- **UJ-REG-A Rate fetch failure path**: Room Type selected → HMS returns 5xx → UI shows retry banner → user clicks retry → if still failing, Rack Rate stays empty, Total Room Rent = 0, Check-In button shows "Rate unavailable, contact manager".
+- **UJ-REG-B Room-race concurrency**: Two agents open Room List simultaneously, both pick 1208 → first submit wins, second receives 409/room-taken message → modal reopens filtered list (1208 excluded).
+- **UJ-REG-C Session expiry during entry**: Silent reauth attempt on each API call; if fails, modal offers "Re-login" without losing in-memory form state; on success, session resumes.
+- **UJ-REG-D Night-audit boundary**: If Check-In action crosses midnight into a new business date, the server uses the application date as the effective registration date (not client wall-clock).
+- **UJ-REG-E Multi-currency recalculation**: Currency change triggers recalculation of all monetary fields via BR-027; if recalculation fails (conversion-rate missing), original values are preserved and a soft warning is shown.
+

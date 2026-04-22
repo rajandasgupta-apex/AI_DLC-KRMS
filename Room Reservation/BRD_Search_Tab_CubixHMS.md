@@ -4,7 +4,7 @@
 
 **Room Registration — Search Tab**
 
-- **System:** Cubix HMS (Hotel Management System) v13.1.0
+- **System:** Cubix HMS V-9.3.0 (deployed) — BRD drafted against v13.1.0
 - **Version:** 1.0 | **Date:** April 15, 2026
 - **Module:** Front Office > Room Registration > Search Tab
 - **Prepared For:** Cubix HMS Project Team
@@ -21,14 +21,14 @@ The tab provides 11 configurable search/filter fields, a paginated and sortable 
 
 | Attribute | Details |
 |---|---|
-| System | Cubix HMS v13.1.0 |
+| System | Cubix HMS V-9.3.0 (deployed) — BRD drafted against v13.1.0 |
 | Module | Front Office |
 | Sub-Module | Room Registration |
 | Tab Name | Search |
 | Tab Position | 5th tab (utility lookup tab) |
-| Total Filter Fields | 11 search/filter parameters |
+| Total Filter Fields | 11 search/filter parameters specified (10 currently implemented; Reference filter pending — see §8) |
 | Result Table Columns | 9 columns (Registration No., Guest Name, Mobile, Company, Room Info, Check In, Check Out, Status, Action) |
-| Per-Row Action Buttons | 5 (Edit, Re-activate, Bill Preview, Split Bill Preview, Registration Card) |
+| Per-Row Action Buttons | 5 specified (3 live today: Edit, Bill Preview, Registration Card). Re-activate and Split Bill Preview are pending — see §8. |
 | Total Records in System | 2,291 registration records (as of demo data) |
 | Primary Users | Front Desk Staff, Supervisors, Duty Managers, Cashiers |
 | Document Version | 1.0 |
@@ -600,3 +600,66 @@ Note: Search and Clear buttons are positioned in Row 3, Col 4.
 | NFR-SR-021 | The search query and results table SHALL remain performant as the registration record count grows to 100,000+ records. | Database indexing on key filter fields required: registration_no, check_in_date, room_number, guest_name, phone_number |
 | NFR-SR-022 | The pagination mechanism SHALL handle up to 10,000 pages without UI degradation (e.g., truncating page number display for very large record sets). | Ellipsis pagination (1, 2, 3 ... N) already implemented |
 | NFR-SR-023 | The Reference filter master list SHALL support up to 100 reference options without the dropdown becoming unusable. | Currently 28 options; select2 search recommended for larger lists |
+
+---
+
+## 8. AI-DLC Audit Update — 2026-04-22
+
+Findings from live audit (Cubix HMS V-9.3.0, Kazi Resort).
+
+### 8.1 Verified filter-field map
+
+| # | Field | Live id | Status |
+|---|---|---|---|
+| 1 | Room Types | `src_fo_reg_roomType` | ✓ present (14 types + placeholder) |
+| 2 | Room Number | `src_fo_reg_room_number` | ✓ |
+| 3 | Registration No. | `src_fo_reg_registration_no` | ✓ |
+| 4 | Reservation Number | `src_fo_reg_reservation_no` | ✓ |
+| 5 | Check-In Date | `src_fo_reg_check_in_date3` | ✓ |
+| 6 | Company Name | `src_fo_reg_company_name` | ✓ |
+| 7 | Country | `src_fo_reg_country` | ✓ |
+| 8 | Name Of the Guest | `src_fo_reg_guest_name` | ✓ |
+| 9 | Guest Phone Number | `src_fo_reg_guest_phone_number` | ✓ |
+| 10 | Contact Person Phone Number | `src_fo_reg_guest_contact_person_phone_number` | ✓ |
+| 11 | **Reference** | `src_reference_id` | ❌ **Not implemented** — pending dev |
+
+### 8.2 Verified per-row actions
+
+| Action | Live hook | Status |
+|---|---|---|
+| Edit | `showFoRegGuestData(id)` | ✓ |
+| Bill Preview | `<a href="/bill-preview/{id}">` | ✓ |
+| Registration Card | `<a href="/pre-registration-card/{id}">` | ✓ |
+| **Re-activate Registration** | `reactiveRegistration(id)` | ❌ **Not implemented** |
+| **Split Bill Preview** | `openSplitBillModal(id, group_id)` / `#splitBillModal` | ❌ **Not implemented** |
+
+### 8.3 Room Types master (live)
+
+BRD §3.2.1 listed 8 sample options (Signature Suite, Business Class Twin, etc.) which do not match the Kazi Resort deployment. Current live master: Deluxe Room, Mud House, Jr. Family Suite Room, Family Suite Room, Jr. Presidential Suite Room, Presidential Family Suite Room, Presidential Suite Room, Presidential Villa, Folio, Auditorium Room, Day Long Package, Dormitory Room, Meeting Room, Tent.
+
+### 8.4 Known defects / scope gaps
+
+| ID | Defect | Scope |
+|---|---|---|
+| DEF-SR-01 | Reference filter missing (BR-SR-005 references it; FR-SR §3.2.11 specifies it) | build or de-scope |
+| DEF-SR-02 | Re-activate Registration button + flow missing — BR-SR-010..013 reference it | build or move to future scope |
+| DEF-SR-03 | Split Bill Preview button + `#splitBillModal` missing — BR-SR-014..015 reference them | build or move to future scope |
+| DEF-SR-04 | Default sort direction on Registration No. column shows ASC in live; BRD §3.2 narrative states DESC ("most recent first") | decide and align |
+| DEF-SR-05 | Demo data shows 2 records; BRD § narratives quote 2,291 — demo-dataset mismatch only, not a spec defect | — |
+
+### 8.5 Business rules added
+
+| ID | Rule |
+|---|---|
+| BR-SR-021 | **Scope tiering** — FR-SR §3.2.11 (Reference filter), §3.8.2 (Re-activate), and §3.8.4 (Split Bill Preview) are classified as **Phase-2 scope**. Until implemented, their Business Rules (BR-SR-010..015) are informative-only and do not block release. |
+| BR-SR-022 | **Default sort direction** — The results table default sort SHALL be Registration No. descending so the most recent registration appears first on page 1. |
+| BR-SR-023 | **Empty-state UX** — When a server-side search returns zero rows, the DataTable SHALL display "No registrations match your filters" and a "Clear filters" shortcut button. |
+| BR-SR-024 | **Role-based action visibility** — Re-activate Registration button (once implemented) SHALL be rendered only to users with role ≥ Supervisor; hidden (not disabled) for lower roles. |
+
+### 8.6 User journeys added
+- UJ-SR-A Empty-state — filters yield 0 rows → table shows empty-state text + "Clear filters" button → click clears all filters and reloads full list.
+- UJ-SR-B Group/multi-room registration row — Room Info column shows "Type-A (101) / Type-B (102)" multi-line; Edit opens wizard with all rooms in summary table.
+- UJ-SR-C Large result set (10k+ rows) — server-side pagination; DataTable shows first 10 rows ≤3s; scroll to page 500 ≤3s using cached filters.
+- UJ-SR-D Role-locked action — Front Desk Agent does not see Re-activate button; Duty Manager does.
+- UJ-SR-E Double-book prevention on Re-activate — if room already occupied by another active registration, system refuses with "Room already occupied; choose another room".
+
